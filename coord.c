@@ -115,7 +115,7 @@ coord_geo index2geo (int index) {
 	else if (abs(base_y) < 86.0) slices = 0.5;
 	else if (abs(base_y) < 88.0) slices = 0.25;
 	else if (abs(base_y) < 89.0) slices = 0.125;
-	else slices = 0.000001;
+	else slices = 0.000001f;
 
 	geo.lat = ((base_y + slice_y / 8.0) * M_PI) / 180.0;
 	geo.lon = ((base_x + slice_x / slices) * M_PI) / 180.0;
@@ -155,7 +155,7 @@ int geo2index (coord_geo geo) {
 	else if (fabsl(geo.lat) < 86.0) slices = 0.5;
 	else if (fabsl(geo.lat) < 88.0) slices = 0.25;
 	else if (fabsl(geo.lat) < 89.0) slices = 0.125;
-	else { slices = 0.00001; geo.lon = 0.0; }
+	else { slices = 0.00001f; geo.lon = 0.0; }
 
 	base_y = (int) floorl(geo.lat);
 	slice_y = (int) truncl((geo.lat - base_y) * 8.0);
@@ -201,8 +201,16 @@ void find_maxima (int index[], btg_header *head) {
 	center.y = bs->coord.y;
 	center.z = bs->coord.z;
 	geo = cart2geo (center);
+
+#ifdef _MSC_VER /* replace 'sincosl' */
+    sin_lat = sin(geo.lat);
+    cos_lat = cos(geo.lat);
+    sin_lon = sin(geo.lon);
+    cos_lon = cos(geo.lon);
+#else
 	sincosl(geo.lat, &sin_lat, &cos_lat);
 	sincosl(geo.lon, &sin_lon, &cos_lon);
+#endif /* _MSC_VER y/n */
 
 	upper.x = (bs->r * sin_lat * cos_lon * -1.0);
 	upper.y = (bs->r * sin_lat * sin_lon * -1.0);
