@@ -19,13 +19,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <limits.h>
 #include <time.h>
 #include <math.h>
+#ifdef WIN32
+
+#else /* go unix mode */
+#include <unistd.h>
 #include <archive.h>
 #include <archive_entry.h>
+#endif // WIN32 y/n
 
 #include "raw.h"
 #include "file.h"
@@ -35,6 +39,14 @@
 #include "edge.h"
 #include "vertex.h"
 #include "seam.h"
+
+#ifdef _MSC_VER
+#ifndef PATH_MAX
+#define PATH_MAX 260
+#endif
+extern int getopt(int argc, char *const *argv, const char *opts);
+extern char *optarg;
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -219,7 +231,12 @@ int main(int argc, char *argv[])
 		get_terrain_path (fullpath, basepath, index[0]);
 
 		snprintf(file, PATH_MAX, "%.4082s/%.8s", fullpath, filename);
-		btg_decompress (file);
+
+        if (btg_decompress(file))
+        {
+            fprintf(stderr, "Failed btg_decompress(file), no '%s.btg'! exit.\n", file);
+            return EXIT_FAILURE;
+        }
 
 		snprintf(file, PATH_MAX, "%.4082s/%.8s.btg", fullpath, filename);
 		if ((infile = fopen(file, "rb")) == NULL) {
