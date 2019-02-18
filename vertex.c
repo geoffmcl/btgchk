@@ -7,6 +7,10 @@
 #include "raw.h"
 #include "coord.h"
 
+#ifndef M_PIl
+#define M_PIl M_PI
+#endif
+
 btg_vertex *read_vertex (FILE *f, btg_base *base, unsigned int ver, int index) {
 
 	btg_vertex *new = NULL;
