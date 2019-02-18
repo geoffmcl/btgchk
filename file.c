@@ -4,13 +4,25 @@
 #include <ctype.h>
 #include <limits.h>
 #include <math.h>
+#ifndef NO_LIBARCH
 #include <archive.h>
 #include <archive_entry.h>
+#endif /* alternates... */
 
 #include "file.h"
 #include "coord.h"
 
-
+#ifndef PATH_MAX
+#define PATH_MAX 260
+#endif
+#ifndef _SSIZE_T_DEFINED
+#ifdef  _WIN64
+typedef unsigned __int64    ssize_t;
+#else
+typedef _W64 unsigned int   ssize_t;
+#endif
+#define _SSIZE_T_DEFINED
+#endif
 
 int get_terrain_path (char fullpath[], const char basepath[], const int index) {
 
@@ -33,7 +45,7 @@ int get_terrain_path (char fullpath[], const char basepath[], const int index) {
 void get_airport_path (char fullpath[], const char basepath[], char airport[]) {
 
 	int i, len;
-	len = strlen(airport);
+	len = (int)strlen(airport);
 	char ap[10] = { 0 };
 
 	for (i = 0 ; i < len ; i++) {
@@ -225,7 +237,7 @@ xml_node *get_key_value (FILE *xml) {
 	node->tree = NULL;
 	node->next = NULL;
 
-	len = strlen(line);
+	len = (int)strlen(line);
 	for (i = 0 ; i < len ; i++) {
 		if (!key_flag && !value_flag && isspace(line[i])) continue;
 
@@ -391,6 +403,7 @@ void set_als (threshold_info *threshold, const char *als) {
 
 int btg_decompress (const char filename[]) {
 
+#ifndef NO_LIBARCH
 	char iname[PATH_MAX], oname[PATH_MAX];
 	struct archive *a = NULL;
 	struct archive_entry *entry = NULL;
@@ -457,4 +470,45 @@ int btg_decompress (const char filename[]) {
 
 	printf("done.\n");
 	return 0;
+#else
+    /* fprintf(stderr, "not implemented...\n"); */
+    /* some alternative, or... */
+    int iret = 0;
+    FILE *ofile, *ifile;
+    int res = 0;
+    char cmd[PATH_MAX * 2];
+    char iname[PATH_MAX], oname[PATH_MAX];
+    snprintf(iname, PATH_MAX, "%s.btg.gz", filename);
+    snprintf(oname, PATH_MAX, "%s.btg", filename);
+    if ((ifile = fopen(iname, "rb")) == NULL) {
+        fprintf(stderr, "could't open file '%s' for reading! exit.\n", iname);
+        return 1;
+    }
+    fclose(ifile);
+
+    /* check for gzip -d version ... */
+    if ((ofile = fopen(oname, "rb")) == NULL) 
+    {
+        /* extract the archive... */
+        printf("extracting archive '%s' ...\n", iname);
+        sprintf(cmd, "gzip -d -k %s", iname);
+        res = system(cmd);  /* try it ... */
+        /* could/should check 'res'... but at least check for the file... */
+        if ((ofile = fopen(oname, "rb")) == NULL) {
+            fprintf(stderr, "could't open file '%s' to read! exit.\n", oname);
+            return 1;
+        }
+        fclose(ofile);  /* SUCCESS */
+        printf("created outfile '%s' ...\n", oname);
+        /* maybe need ceanup of these 'temporary' extracts, until ... say gzFile used... */
+    }
+    else {
+        /* found gzip -d version */
+        fclose(ofile);
+    }
+    return iret;
+#endif
+    
 }
+
+/* eof */
