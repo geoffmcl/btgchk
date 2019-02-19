@@ -16,7 +16,7 @@
 #define PATH_MAX 260
 #endif
 
-#ifdef _MSC_V£R
+#ifdef _MSC_VER
 /* missing windows define */
 #ifndef _SSIZE_T_DEFINED
 #ifdef  _WIN64
