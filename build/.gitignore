@@ -7,3 +7,12 @@ cmake_install.cmake
 libbtgutils.a
 Makefile
 
+*.vcxproj
+*.filters
+Debug/*
+RelWithDebInfo/*
+Release/*
+x64/*
+*.dir/*
+*.sln
+
