@@ -15,6 +15,9 @@
 #ifndef PATH_MAX
 #define PATH_MAX 260
 #endif
+
+#ifdef _MSC_V£R
+/* missing windows define */
 #ifndef _SSIZE_T_DEFINED
 #ifdef  _WIN64
 typedef unsigned __int64    ssize_t;
@@ -23,6 +26,7 @@ typedef _W64 unsigned int   ssize_t;
 #endif
 #define _SSIZE_T_DEFINED
 #endif
+#endif /* #ifdef _MSC_V£R */
 
 int get_terrain_path (char fullpath[], const char basepath[], const int index) {
 
