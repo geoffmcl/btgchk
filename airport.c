@@ -13,6 +13,10 @@
 #include "edge.h"
 #include "point.h"
 
+#ifndef M_PIl
+#define M_PIl M_PI
+#endif
+
 const int als1w_size = 92;
 const float als1w_head[] = {
 	90.0,  90.0,  90.0,
