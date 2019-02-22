@@ -81,6 +81,7 @@ endif ()
 set(name btgutils)
 set(dir .)
 set(${name}_SRCS
+    ${dir}/airport.c
     ${dir}/bsphere.c
     ${dir}/btgio.c
     ${dir}/check.c
@@ -102,6 +103,7 @@ set(${name}_SRCS
     ${dir}/vertex.c
     )
 set(${name}_HDRS
+    ${dir}/airport.h
     ${dir}/bsphere.h
     ${dir}/btgio.h
     ${dir}/check.h
