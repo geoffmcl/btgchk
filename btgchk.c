@@ -359,7 +359,8 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Can't create file '%s'! exit.\n", file);
 			return 2;
 		}
-		if (write_btg (outfile, airport)) {
+        printf("write file '%s' ...\n", file);
+        if (write_btg (outfile, airport)) {
 			fprintf(stderr, "Problem while writing btg-file '%s'! exit.\n", file);
 			fclose (outfile);
 			return EXIT_FAILURE;
