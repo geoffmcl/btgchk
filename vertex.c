@@ -7,7 +7,7 @@
 #include "raw.h"
 #include "coord.h"
 
-int read_vertex (FILE *f, btg_base *base, unsigned int ver, int index) {
+int read_vertex(FILE *f, btg_base *base, unsigned int ver, btg_element *elem) {
 
 	int index = 0;
 	btg_vertex *new = NULL, *last = NULL;
