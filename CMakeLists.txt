@@ -65,6 +65,17 @@ endif()
 #   LibArchive_VERSION      - libarchive 3-component version number
 find_package( LibArchive )
 if (LibArchive_FOUND)
+    list(LENGTH LibArchive_LIBRARIES LIB_LIST_LEN)
+    if (MSVC AND (LIB_LIST_LEN EQUAL 1))
+        find_library(LibArchive_DEBUG
+            NAMES libarchived archived )
+        if (LibArchive_DEBUG)
+            set(LibArchive_LIBRARIES 
+                optimized ${LibArchive_LIBRARIES}
+                debug ${LibArchive_DEBUG}
+                )
+        endif ()
+    endif ()
     message(STATUS "Found 'LibArchive' vers ${LibArchive_VERSION}")
     message(STATUS "inc = ${LibArchive_INCLUDE_DIRS}, libs = ${LibArchive_LIBRARIES}")
     include_directories( ${LibArchive_INCLUDE_DIRS} )

@@ -1,183 +1,86 @@
 @setlocal
-@set TMPBGN=%TIME%
-@set VCVERS=14
+@set DOINST=0
 @set TMPPRJ=btgchk
-@echo Setup for 64-bit %TMPROJ% build
-@set TMPLOG=bldlog-1.txt
 @set TMPSRC=..
-@REM @set TMP3RD=F:\Projects\software.x64
-@set ADDINST=0
-@REM set BOOST_ROOT=X:\install\msvc%VCVERS%0-64\boost
-@REM if NOT EXIST %BOOST_ROOT%\nul goto NOBOOST
+@set TMPLOG=bldlog-1.txt
+@REM set TMPGEN=Visual Studio 16 2019
+@set TMP3RD=D:\Projects\3rdParty.x64
 
-@call chkmsvc %TMPPRJ%
-@REM call setupqt32
-@REM if EXIST build-cmake.bat (
-@REM call build-cmake
-@REM if ERRORLEVEL 1 goto NOBCM
-@REM )
+@set TMPOPTS=
+@REM set TMPOPTS=%TMPOPTS% -G "%TMPGEN%" -A x64
+@set TMPOPTS=%TMPOPTS% -DCMAKE_INSTALL_PREFIX:PATH=%TMP3RD%
 
-@REM ###########################################
-@REM NOTE: Specific install location
-@REM ###########################################
-@set TMPINST=F:\Projects\software.x64
-@REM ###########################################
-@REM ############################################
-@REM NOTE: MSVC %VCVERS% INSTALL LOCATION
-@REM Adjust to suit your environment
-@REM ##########################################
-@set GENERATOR=Visual Studio %VCVERS% Win64
-@set VS_PATH=C:\Program Files (x86)\Microsoft Visual Studio %VCVERS%.0
-@set VC_BAT=%VS_PATH%\VC\vcvarsall.bat
-@if NOT EXIST "%VS_PATH%" goto NOVS
-@if NOT EXIST "%VC_BAT%" goto NOBAT
-@set BUILD_BITS=%PROCESSOR_ARCHITECTURE%
-@IF /i %BUILD_BITS% EQU x86_amd64 (
-    @set "RDPARTY_ARCH=x64"
-) ELSE (
-    @IF /i %BUILD_BITS% EQU amd64 (
-        @set "RDPARTY_ARCH=x64"
-    ) ELSE (
-        @echo Appears system is NOT 'x86_amd64', nor 'amd64'
-        @echo Can NOT build the 64-bit version! Aborting
-        @exit /b 1
-    )
+@if NOT "%DOINST%x" == "1x" (
+@echo Install NOT configured! Set DOINST=1
+@REM pause
 )
-@set CURRDIR=%CD%
-@echo Setting environment - CALL "%VC_BAT%" %BUILD_BITS%
-@call "%VC_BAT%" %BUILD_BITS%
-@if ERRORLEVEL 1 goto NOSETUP
-@cd %CURRDIR%
 
-@REM Nothing below need be touched..
-@REM if NOT EXIST F:\nul goto NOXD
-@REM if NOT EXIST %TMPSRC%\nul goto NOSRC
-@REM if NOT EXIST %BOOST_ROOT%\nul goto NOBOOST
-@if NOT EXIST %TMPSRC%\CMakeLists.txt goto NOSRC2
-
-@REM if NOT EXIST %TMP3RD%\nul goto NO3RD
-@set TMPOPTS=-G "%GENERATOR%" -DCMAKE_INSTALL_PREFIX=%TMPINST%
-@REM set TMPOPTS=%TMPOPTS% -DCMAKE_PREFIX_PATH:PATH=%TMP3RD%
-
-:RPT
-@if "%~1x" == "x" goto GOTCMD
-@set TMPOPTS=%TMPOPTS% %1
-@shift
-@goto RPT
-:GOTCMD
-
-@echo Building %TMPPRJ% begin %DATE% %TMPBGN% > %TMPLOG%
-@echo All output to %TMPLOG%...
-
-@REM echo Set ENV BOOST_ROOT=%BOOST_ROOT% >> %TMPLOG%
-
-@echo Doing 'cmake %TMPSRC% %TMPOPTS%' out to %TMPLOG%
-@echo Doing 'cmake %TMPSRC% %TMPOPTS%' >> %TMPLOG%
-@cmake %TMPSRC% %TMPOPTS% >> %TMPLOG% 2>&1
+@echo Being build %TMPPRJ% %DATE% %TIME% >%TMPLOG%
+@echo Doing: 'cmake -S %TMPSRC% %TMPOPTS%'
+@echo Doing: 'cmake -S %TMPSRC% %TMPOPTS%' >>%TMPLOG%
+@cmake -S %TMPSRC% %TMPOPTS% >>%TMPLOG% 2>&1
 @if ERRORLEVEL 1 goto ERR1
 
 @echo Doing: 'cmake --build . --config Debug'
-@echo Doing: 'cmake --build . --config Debug' >> %TMPLOG%
-@cmake --build . --config Debug >> %TMPLOG%
+@echo Doing: 'cmake --build . --config Debug' >>%TMPLOG%
+@cmake --build . --config Debug >>%TMPLOG% 2>&1
 @if ERRORLEVEL 1 goto ERR2
 
-@echo Doing: 'cmake --build . --config RelWithDebInfo'
-@echo Doing: 'cmake --build . --config RelWithDebInfo' >> %TMPLOG%
-@cmake --build . --config RelWithDebInfo >> %TMPLOG%
-@if ERRORLEVEL 1 goto ERR22
+@echo Doing: 'cmake --build . --config Release'
+@echo Doing: 'cmake --build . --config Release' >>%TMPLOG%
+@cmake --build . --config Release >>%TMPLOG% 2>&1
+@if ERRORLEVEL 1 goto ERR3
+@REM :DONEREL
 
-@REM still to add 'Release' ...
-
-@REM type %TMPLOG%
-@fa4 "***" %TMPLOG%
+@echo Appears successful...
 @echo.
-@echo Appears a successful build... see %TMPLOG%
-@echo No Release, so no install of 'Debug' or 'RelWithDebInfo'
-@goto END
-
-@call elapsed %TMPBGN%
-@if "%ADDINST%" == "0" (
-@echo.
-@echo Install to %TMPINST% disabled at this time. Set ADDINST=1
-@echo.
+@if NOT "%DOINST%x" == "1x" (
+@echo Install NOT configured! Set DOINST=1
 @goto END
 )
-@echo.
-@echo Proceed with an install - Debug then Release
-@echo.
-@echo *** CONTINUE? *** Only Ctrl+C aborts... all other keys continue...
-@echo.
+
+@echo Continue with install, to %TMP3RD%?
+@ask Only 'y' continues. All else aborts...
+@if ERRORLEVEL 2 goto NOASK
+@if ERRORLEVEL 1 goto INSTALL
+@echo Skipping install at this time...
+@goto END
+
+:NOASK
+@echo Ask utility NOT found...
+:INSTALL
+@echo Continue with install? Only Ctrl+C aborts
 @pause
-@echo.
-@echo Doing: 'cmake --build . --config Debug --target INSTALL'
-@echo Doing: 'cmake --build . --config Debug --target INSTALL' >> %TMPLOG%
-@cmake --build . --config Debug --target INSTALL >> %TMPLOG% 2>&1
+
+@echo Doing: cmake --build . --config Release --target INSTALL
+@echo Doing: cmake --build . --config Release --target INSTALL >>%TMPLOG%
+@cmake --build . --config Release --target INSTALL >>%TMPLOG% 2>&1
 @if ERRORLEVEL 1 goto ERR4
 @echo.
-@echo Doing: 'cmake --build . --config Release --target INSTALL'
-@echo Doing: 'cmake --build . --config Release --target INSTALL' >> %TMPLOG% 2>&1
-@cmake --build . --config Release --target INSTALL >> %TMPLOG% 2>&1
-@if ERRORLEVEL 1 goto ERR5
+fa4 " -- " %TMPLOG%
 @echo.
-@echo.
-@fa4 " -- " %TMPLOG%
-@echo.
-@call elapsed %TMPBGN%
-@echo.
-@echo All done %TMPPRJ%... build and install to %TMPINST%
-@echo See %TMPLOG% for details...
-@echo.
+@echo All done...
+
 @goto END
 
 :ERR1
-@echo ERROR: Cmake config or geneation FAILED!
+@echo cmake config, gen error
 @goto ISERR
 
-:ERR2
-@echo ERROR: Cmake build Debug FAILED!
-@goto ISERR
-
-:ERR22
-@echo ERROR: Cmake build RelWithDebInfo FAILED!
+:Err2
+@echo build debug error
 @goto ISERR
 
 :ERR3
-@echo ERROR: Cmake build Release FAILED!
+@echo build release error
 @goto ISERR
 
 :ERR4
-@echo ERROR: Cmake install debug FAILED!
-@goto ISERR
-
-:ERR5
-@echo ERROR: Cmake install release FAILED!
-@goto ISERR
-
-:NOXD
-@echo Error: X:\ drive NOT found!
-@goto ISERR
- 
-:NOSRC
-@echo Error: No %TMPSRC% found!
-@goto ISERR
-
-:NO3RD
-@echo Erro: No directory %TMP3RD% found!
-@goto ISERR
-
-:NOBOOST
-@echo Error: Boost directory %BOOST_ROOT% not found!
-@goto ISERR
- 
-:NOSRC2
-@echo Error: File %TMPSRC%\CMakeLists.txt not found!
-@goto ISERR
-
-:NOBCM
-@echo Error: Running build-cmake.bat caused an error!
+@echo install error
 @goto ISERR
 
 :ISERR
+@echo See %TMPLOG% for details...
 @endlocal
 @exit /b 1
 
@@ -186,4 +89,3 @@
 @exit /b 0
 
 @REM eof
-
